@@ -297,7 +297,7 @@ footer { margin-top: 44px; padding-top: 20px; border-top:1px solid var(--panel-b
   <div class="hero">
     <div class="hero-text">
       <div class="now-or-never"><span class="spark">&#9889;</span> Now or Never Offer</div>
-      <div class="eyebrow"><span class="dot"></span>FOUNDING PRESALE &middot; LIVE ON BSC TESTNET</div>
+      <div class="eyebrow"><span class="dot"></span>FOUNDING PRESALE &middot; LIVE ON BSC MAINNET</div>
       <h1>Get in before<br>GMAX hits <span>PancakeSwap.</span></h1>
       <p>A fixed, one-time founding offer — 650 GMAX for every 1 USDT, delivered straight to your wallet the moment you contribute. No waiting, no conditions.</p>
     </div>
@@ -364,15 +364,15 @@ footer { margin-top: 44px; padding-top: 20px; border-top:1px solid var(--panel-b
   <footer>
     <div class="trust-row"><span>Contract</span><a id="contractLink" href="#" target="_blank" rel="noopener">View on BscScan &#8599;</a></div>
     <div class="trust-row"><span>Security</span><span>Slither &middot; Foundry-fuzzed &middot; Hardhat-tested</span></div>
-    <div class="trust-row"><span>Network</span><span id="networkNote">BSC Testnet (rehearsal)</span></div>
+    <div class="trust-row"><span>Network</span><span id="networkNote">BSC Mainnet</span></div>
   </footer>
 </div>
 
 <script>
-const PRESALE_ADDRESS = "0xFEce8f7971a9DAb5e4fBaf6Bc3E11779fcDc6fDe";
-const USDT_ADDRESS = "0xE3941fD90dd71A23B5AC10fD1e259D88E95eA93d";
-const GMAX_ADDRESS = "0x0637379AFd2cAd07D49b0C9624A96d4703577147";
-const EXPECTED_CHAIN_ID = 97n;
+const PRESALE_ADDRESS = "0xAd06a2E2Fa5FE67d721014Cc52051Adcc6040484";
+const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
+const GMAX_ADDRESS = "0x20Ed4d89755F1e4C474C597e9703eD5A59ee3682";
+const EXPECTED_CHAIN_ID = 56n;
 const GMAX_PER_USDT = 650;
 
 const PRESALE_ABI = [
@@ -394,7 +394,7 @@ const actionBtn = document.getElementById('actionBtn');
 const usdtInput = document.getElementById('usdtInput');
 const feedback = document.getElementById('feedback');
 const receivePreview = document.getElementById('receivePreview');
-document.getElementById('contractLink').href = `https://testnet.bscscan.com/address/${PRESALE_ADDRESS}`;
+document.getElementById('contractLink').href = `https://bscscan.com/address/${PRESALE_ADDRESS}`;
 
 function showFeedback(msg, type) { feedback.textContent = msg; feedback.className = `show ${type}`; }
 function clearFeedback() { feedback.className = ''; }
@@ -435,7 +435,7 @@ function tickCountdown() {
 }
 
 async function initReadOnlyProvider() {
-  const readProvider = new ethers.JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545");
+  const readProvider = new ethers.JsonRpcProvider("https://bsc-dataseed.bnbchain.org");
   presaleRead = new ethers.Contract(PRESALE_ADDRESS, PRESALE_ABI, readProvider);
   await refreshStats();
 }
@@ -472,7 +472,7 @@ connectBtn.addEventListener('click', async () => {
     signer = await provider.getSigner();
     userAddress = await signer.getAddress();
     const network = await provider.getNetwork();
-    if (network.chainId !== EXPECTED_CHAIN_ID) { showFeedback('Wrong network — switch to BSC Testnet.', 'error'); return; }
+    if (network.chainId !== EXPECTED_CHAIN_ID) { showFeedback('Wrong network — switch to BSC Mainnet.', 'error'); return; }
     connectBtn.textContent = userAddress.slice(0,6) + '...' + userAddress.slice(-4);
     connectBtn.disabled = true;
     presaleRead = new ethers.Contract(PRESALE_ADDRESS, PRESALE_ABI, signer);
