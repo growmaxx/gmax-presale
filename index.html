@@ -571,6 +571,38 @@ connectBtn.addEventListener('click', async () => {
   } catch(err) { showFeedback('Connection failed: ' + (err.message||err), 'error'); }
 });
 
+// FIX: automatically detect when the user switches accounts or networks
+// inside their wallet app, instead of silently continuing to use the
+// account that was active at the moment of the first connection.
+if (window.ethereum) {
+  window.ethereum.on('accountsChanged', async (accounts) => {
+    if (!accounts || accounts.length === 0) {
+      // Wallet disconnected/locked.
+      connectBtn.textContent = 'Connect Wallet';
+      connectBtn.disabled = false;
+      actionBtn.disabled = true; actionBtn.textContent = 'Connect Wallet First';
+      document.getElementById('addTokenBtn').style.display = 'none';
+      showFeedback('Wallet disconnected. Please connect again.', 'info');
+      return;
+    }
+    // Re-derive everything against the NEWLY active account.
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+    userAddress = await signer.getAddress();
+    presaleRead = new ethers.Contract(PRESALE_ADDRESS, PRESALE_ABI, signer);
+    usdtRead = new ethers.Contract(USDT_ADDRESS, ERC20_ABI, signer);
+    connectBtn.textContent = userAddress.slice(0,6) + '...' + userAddress.slice(-4);
+    actionBtn.textContent = 'Approve USDT';
+    showFeedback('Switched to account ' + userAddress.slice(0,6) + '...' + userAddress.slice(-4), 'info');
+    await refreshStats();
+  });
+
+  window.ethereum.on('chainChanged', () => {
+    // Simplest, most reliable fix for a network switch: reload the page.
+    window.location.reload();
+  });
+}
+
 actionBtn.addEventListener('click', async () => {
   const amountStr = usdtInput.value;
   if (!amountStr || parseFloat(amountStr) <= 0) { showFeedback('Enter an amount first.', 'error'); return; }
