@@ -432,7 +432,8 @@ footer { margin-top: 44px; padding-top: 20px; border-top:1px solid var(--panel-b
   </div>
 
   <footer>
-    <div class="trust-row"><span>Contract</span><a id="contractLink" href="#" target="_blank" rel="noopener">View on BscScan &#8599;</a></div>
+    <div class="trust-row"><span>Presale Contract</span><a id="contractLink" href="#" target="_blank" rel="noopener">View on BscScan &#8599;</a></div>
+    <div class="trust-row"><span>GMAX Token Address</span><span id="gmaxAddressDisplay" style="font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;" title="Click to copy">0x20Ed...e3682 &#128203;</span></div>
     <div class="trust-row"><span>Security</span><span>Slither &middot; Foundry-fuzzed &middot; Hardhat-tested</span></div>
     <div class="trust-row"><span>Network</span><span id="networkNote">BSC Mainnet</span></div>
   </footer>
@@ -465,6 +466,13 @@ const usdtInput = document.getElementById('usdtInput');
 const feedback = document.getElementById('feedback');
 const receivePreview = document.getElementById('receivePreview');
 document.getElementById('contractLink').href = `https://bscscan.com/address/${PRESALE_ADDRESS}`;
+document.getElementById('gmaxAddressDisplay').addEventListener('click', () => {
+  navigator.clipboard.writeText(GMAX_ADDRESS);
+  const el = document.getElementById('gmaxAddressDisplay');
+  const original = el.textContent;
+  el.textContent = 'Copied! ' + GMAX_ADDRESS;
+  setTimeout(() => { el.textContent = original; }, 2000);
+});
 
 function showFeedback(msg, type) { feedback.textContent = msg; feedback.className = `show ${type}`; }
 function clearFeedback() { feedback.className = ''; }
@@ -535,8 +543,10 @@ function updateReceivePreview() {
 usdtInput.addEventListener('input', updateReceivePreview);
 
 document.getElementById('addTokenBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('addTokenBtn');
+  const originalText = btn.textContent;
   try {
-    await window.ethereum.request({
+    const wasAdded = await window.ethereum.request({
       method: 'wallet_watchAsset',
       params: {
         type: 'ERC20',
@@ -547,9 +557,23 @@ document.getElementById('addTokenBtn').addEventListener('click', async () => {
         },
       },
     });
+    if (wasAdded) {
+      btn.textContent = '✓ Added! Check your wallet';
+      showFeedback('GMAX successfully added to your wallet.', 'success');
+    } else {
+      // User dismissed the prompt without confirming -- this is NOT an error,
+      // but they must be told clearly, since nothing else will happen.
+      btn.textContent = originalText;
+      showFeedback('Add-to-wallet was cancelled. Tap the button again to retry, or add GMAX manually using the address shown below (Presale Contract section).', 'error');
+    }
   } catch (err) {
+    // Genuinely failed (wallet doesn't support this feature, or a real error).
+    // CRITICAL FIX: tell the user directly, do NOT fail silently.
     console.error('Add token failed:', err);
+    btn.textContent = originalText;
+    showFeedback('Could not add automatically. Please add GMAX manually using the address shown below (Presale Contract section) -- tap it to copy.', 'error');
   }
+  setTimeout(() => { btn.textContent = originalText; }, 4000);
 });
 
 connectBtn.addEventListener('click', async () => {
